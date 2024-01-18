@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.exception.SchoolNotFoundByIdException;
-import com.school.sba.repo.AcademicProgramRepositary;
+import com.school.sba.repositary.AcademicProgramRepositary;
 import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.requestdto.AcademicProgramRequest;
 import com.school.sba.responsedto.AcademicProgramResponse;
@@ -36,14 +36,23 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				.build();
 	}
 
-	private AcademicProgramResponse mapToAcademicProgramResponse(AcademicProgram academicProgram)
+	public AcademicProgramResponse mapToAcademicProgramResponse(AcademicProgram academicProgram)
 	{
+		List<String> subjectNames = new ArrayList<String>();
+		if(academicProgram.getSubjects()!=null)
+		{
+			academicProgram.getSubjects().forEach(subject->{
+				subjectNames.add(subject.getSubjectName());
+			});
+		}
+
 		return new AcademicProgramResponse().builder()
 				.programId(academicProgram.getProgramId())
 				.programtype(academicProgram.getProgramtype())
 				.programName(academicProgram.getProgramName())
 				.beginsAt(academicProgram.getBeginsAt())
 				.endsAt(academicProgram.getEndsAt())
+				.subjects(subjectNames)
 				.build();
 
 	}

@@ -1,4 +1,4 @@
-package com.school.sba.repo;
+package com.school.sba.repositary;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

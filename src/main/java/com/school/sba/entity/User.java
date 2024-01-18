@@ -1,11 +1,11 @@
 package com.school.sba.entity;
 
-import org.hibernate.annotations.ManyToAny;
-
 import com.school.sba.enums.USERROLE;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,7 +36,10 @@ public class User {
 	private long contactNo;
 	@Column(unique = true)
 	private String email;
+	
+	@Enumerated(EnumType.STRING)
 	private USERROLE userRole;
+	
 	private boolean isDeleted;
 	@ManyToOne
 	private School school;
