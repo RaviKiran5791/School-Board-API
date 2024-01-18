@@ -87,6 +87,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	{
 		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
 	}
+	@ExceptionHandler(DataNotExistException.class)
+	public ResponseEntity<Object> dataNotExists(DataNotExistException e)
+	{
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+	}
 	
 	
 	

@@ -33,5 +33,8 @@ public class School {
 	@OneToOne
 	Schedule schedule;
 	
+	@OneToMany(mappedBy = "school")
+	private List<AcademicProgram> programs;
+	
 	
 }
