@@ -1,8 +1,5 @@
 package com.school.sba.responsedto;
 
-import com.school.sba.entity.Schedule;
-
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,8 +17,4 @@ public class SchoolResponse {
 	private long contactNo;
 	private String emailId;
 	private String address;
-	
-	@OneToOne
-	private Schedule schedule;
-
 }

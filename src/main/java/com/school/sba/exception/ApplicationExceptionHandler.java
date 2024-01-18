@@ -71,6 +71,23 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 		return structure(HttpStatus.BAD_REQUEST, e.getMessage(), "UnAuthorised..!!!");
 	}
 	
+	@ExceptionHandler(DataAlreadyExistException.class)
+	public ResponseEntity<Object> dataAlreadyExists(DataAlreadyExistException e)
+	{
+		return structure(HttpStatus.BAD_REQUEST, e.getMessage(), "UnAuthorised..!!!");
+	}
+	@ExceptionHandler(ScheduleNotFoundByIdException.class)
+	public ResponseEntity<Object> scheduleNotFoundById(ScheduleNotFoundByIdException e)
+	{
+		return  structure(HttpStatus.NOT_FOUND, e.getMessage(), "School Data not present");
+	}
+	
+	@ExceptionHandler(ScheduleNotFoundException.class)
+	public ResponseEntity<Object> scheduleNotFound(ScheduleNotFoundException e)
+	{
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+	}
+	
 	
 	
 	
