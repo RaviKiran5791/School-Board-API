@@ -98,7 +98,6 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				structure.setMessage("Academic Program List found");
 				structure.setData(list);
 
-
 				return new ResponseEntity<ResponseStructure<List<AcademicProgramResponse>>>(structure,HttpStatus.FOUND);
 
 			}

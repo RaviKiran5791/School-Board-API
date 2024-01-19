@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.Subject;
+import com.school.sba.exception.DataNotExistException;
 import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.repositary.AcademicProgramRepositary;
 import com.school.sba.repositary.SubjectRepositary;
 import com.school.sba.requestdto.SubjectRequest;
 import com.school.sba.responsedto.AcademicProgramResponse;
+import com.school.sba.responsedto.SubjectResponse;
 import com.school.sba.service.SubjectService;
 import com.school.sba.utility.ResponseStructure;
 @Service
@@ -32,7 +34,12 @@ public class SubjectServiceImpl implements SubjectService{
 	@Autowired
 	private ResponseStructure<AcademicProgramResponse> structure;
 	
-	
+	private SubjectResponse mapToSubjectResponse(Subject subject) {
+		return new SubjectResponse().builder()
+				.subjectId(subject.getSubjectId())
+				.subjectName(subject.getSubjectName())
+				.build();
+	}
 	
 	@Override
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> addSubjects(int programId,
@@ -96,16 +103,16 @@ public class SubjectServiceImpl implements SubjectService{
 		        }
 
 		        // Update existing subjects
-		        for (String sub : newSubjectNames) {
-		            if (oldSubjectNames.contains(sub)) {
-		                int index = oldSubjectNames.indexOf(sub);
-//		                Subject existingSubject = existingSubjects.get(index);
-		                
-		                oldSubjectNames.set(index, sub);
-		                
-		                // Perform any additional updates if needed
-		            }
-		        }
+//		        for (String sub : newSubjectNames) {
+//		            if (oldSubjectNames.contains(sub)) {
+//		                int index = oldSubjectNames.indexOf(sub);
+////		                Subject existingSubject = existingSubjects.get(index);
+//		                
+//		                oldSubjectNames.set(index, sub);
+//		                
+//		                // Perform any additional updates if needed
+//		            }
+//		        }
 
 		        // Remove subjects not present in the new list
 		        existingSubjects.removeIf(sub -> !newSubjectNames.contains(sub.getSubjectName()));
@@ -126,6 +133,77 @@ public class SubjectServiceImpl implements SubjectService{
 			throw new ProgramNotFoundByIdException("program not present for given id for updating subjects");
 		
 	}		
+	
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> insertAndUpdateSubjectsIntoAcademicProgram(int academicProgramId,
+			SubjectRequest subjectRequest) {
+		
+			return programRepo.findById(academicProgramId).map(academicProgram -> {
+			List<Subject> subjects = (academicProgram.getSubjects()!=null) ? academicProgram.getSubjects() : new ArrayList<>();
+			
+			subjectRequest.getSubjectNames().forEach(name -> {
+				boolean isPresent = false;
+				for(Subject subject : subjects) {
+					isPresent = (name.equalsIgnoreCase(subject.getSubjectName()))? true : false;
+					if(isPresent)break;
+				}
+				if(!isPresent) {
+					subjects.add(subjectRepo.findBySubjectName(name)
+							.orElseGet(() -> subjectRepo.save(Subject.builder().subjectName(name).build())));
+				}
+			});
+			List<Subject> toBeRemoved = new ArrayList<>();
+			subjects.forEach(subject -> {
+				boolean isPresent = false;
+				for(String name : subjectRequest.getSubjectNames()) {
+					isPresent = (subject.getSubjectName().equalsIgnoreCase(name))? true : false;
+					if(!isPresent)break;
+				}
+				if(!isPresent)toBeRemoved.add(subject);
+			});
+			subjects.removeAll(toBeRemoved);
+
+			structure.setStatus(HttpStatus.CREATED.value());
+			structure.setMessage("Updated the Subject list to Academic Program");
+			structure.setData(academicProgramServiceImpl.mapToAcademicProgramResponse(academicProgram));
+
+			return new ResponseEntity<ResponseStructure<AcademicProgramResponse>>(structure,
+					HttpStatus.CREATED);
+		}).orElseThrow(() -> new ProgramNotFoundByIdException("AcademicProgram Data Not Found By Id"));
+	}
+
+
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<SubjectResponse>>> findAllSubjects() {
+		
+		List<Subject> subjects = subjectRepo.findAll();
+		if(!subjects.isEmpty())
+		{
+			List<SubjectResponse> list=new ArrayList<>();
+			
+			for(Subject subject : subjects)
+			{
+				list.add(mapToSubjectResponse(subject));
+			}
+			
+			ResponseStructure<List<SubjectResponse>> structure=new ResponseStructure<>();
+			
+			structure.setStatus(HttpStatus.FOUND.value());
+			structure.setMessage("Subjects Found");
+			structure.setData(list);
+			
+			return new ResponseEntity<ResponseStructure<List<SubjectResponse>>>(structure,HttpStatus.FOUND);
+			
+		}
+		else 
+			throw new DataNotExistException("No Subjects Present");
+			
+	}
+
+
+
+	
 
 
 }

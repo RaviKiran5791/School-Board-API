@@ -1,5 +1,7 @@
 package com.school.sba.entity;
 
+import java.util.List;
+
 import com.school.sba.enums.USERROLE;
 
 import jakarta.persistence.Column;
@@ -9,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -43,6 +46,12 @@ public class User {
 	private boolean isDeleted;
 	@ManyToOne
 	private School school;
+	
+	@ManyToMany(mappedBy = "users")
+	private List<AcademicProgram> academicPrograms;
+	
+	@ManyToOne
+	private Subject subject;
 	
 
 	
