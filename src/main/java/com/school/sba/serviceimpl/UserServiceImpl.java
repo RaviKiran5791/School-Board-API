@@ -3,6 +3,7 @@ package com.school.sba.serviceimpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
@@ -24,6 +25,8 @@ import com.school.sba.utility.ResponseStructure;
 @Service
 public class UserServiceImpl implements UserService {
 
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	@Autowired
 	private UserRepositary userRepo;
@@ -44,7 +47,7 @@ public class UserServiceImpl implements UserService {
 				.firstName(userRequest.getFirstName())
 				.lastName(userRequest.getLastName())
 				.email(userRequest.getEmail())
-				.password(userRequest.getPassword())
+				.password(passwordEncoder.encode(userRequest.getPassword()))
 				.contactNo(userRequest.getContactNo())
 				.userRole(USERROLE.valueOf(userRequest.getUserRole()))
 				.build();
