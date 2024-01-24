@@ -5,6 +5,7 @@ import java.util.List;
 import com.school.sba.enums.USERROLE;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -42,7 +43,6 @@ public class User {
 	
 	@Enumerated(EnumType.STRING)
 	private USERROLE userRole;
-	
 	private boolean isDeleted;
 	@ManyToOne
 	private School school;

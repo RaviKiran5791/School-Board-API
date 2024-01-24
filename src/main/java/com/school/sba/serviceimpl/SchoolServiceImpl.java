@@ -3,6 +3,7 @@ package com.school.sba.serviceimpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.School;
@@ -39,9 +40,11 @@ public class SchoolServiceImpl implements SchoolService {
 	}
 
 	@Override
-	public ResponseEntity<ResponseStructure<SchoolResponse>> registerSchool(int userId, SchoolRequest schoolRequest) {
+	public ResponseEntity<ResponseStructure<SchoolResponse>> registerSchool(SchoolRequest schoolRequest)
+	{
+		String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		return userRepo.findById(userId).map(u -> {
+		return userRepo.findByUserName(userName).map(u -> {
 			if (u.getUserRole().equals(USERROLE.ADMIN)) {
 				if (u.getSchool() == null) {
 					School school = mapToSchool(schoolRequest);

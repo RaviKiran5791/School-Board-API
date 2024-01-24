@@ -22,6 +22,8 @@ import com.school.sba.requestdto.UserRequest;
 import com.school.sba.responsedto.UserResponse;
 import com.school.sba.service.UserService;
 import com.school.sba.utility.ResponseStructure;
+
+import jakarta.validation.Valid;
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -30,13 +32,13 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepositary userRepo;
-	
+
 	@Autowired
 	private AcademicProgramRepositary programRepo;
-	
+
 	@Autowired
 	private SubjectRepositary subjectRepo;
-	
+
 	@Autowired
 	private ResponseStructure<UserResponse> structure;
 
@@ -68,26 +70,46 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(UserRequest userRequest) 
+	public ResponseEntity<ResponseStructure<UserResponse>> registerAdmin(UserRequest userRequest) 
 	{
-				User user = mapToUser(userRequest);
-				if(user.getUserRole()==USERROLE.ADMIN && userRepo.existsByUserRole(USERROLE.ADMIN))
-				{
-					structure.setStatus(HttpStatus.BAD_REQUEST.value());
-					structure.setMessage("There Should be only one ADMIN to the application");
-					
-					return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.BAD_REQUEST);
-					
-				}
-				userRepo.save(user);
-				UserResponse userResponse = mapToUserResponse(user);
+		User user = mapToUser(userRequest);
+		if(user.getUserRole()==USERROLE.ADMIN && userRepo.existsByUserRole(USERROLE.ADMIN))
+		{
+			structure.setStatus(HttpStatus.BAD_REQUEST.value());
+			structure.setMessage("There Should be only one ADMIN to the application");
 
-				structure.setStatus(HttpStatus.CREATED.value());
-				structure.setMessage("User registerd Successfully");
-				structure.setData(userResponse);
+			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.BAD_REQUEST);
 
-				return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
-			
+		}
+		userRepo.save(user);
+		UserResponse userResponse = mapToUserResponse(user);
+
+		structure.setStatus(HttpStatus.CREATED.value());
+		structure.setMessage("User registerd Successfully");
+		structure.setData(userResponse);
+
+		return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
+
+	}
+	@Override
+	public ResponseEntity<ResponseStructure<UserResponse>> addOtherUser(UserRequest userRequest) {
+
+		User user = mapToUser(userRequest);
+		if(user.getUserRole().equals(USERROLE.TEACHER)|| user.getUserRole().equals(USERROLE.STUDENT))
+		{
+			userRepo.save(user);
+			UserResponse userResponse = mapToUserResponse(user);
+
+			structure.setStatus(HttpStatus.CREATED.value());
+			structure.setMessage("User registerd Successfully");
+			structure.setData(userResponse);
+
+			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
+		}
+		else
+			throw new UnAuthorisedUserException("Unable to save user Invalid user role");
+
+
 	}
 
 	@Override
@@ -107,13 +129,13 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(int userId) {
 		User user = userRepo.findById(userId).orElseThrow(()->new UserNotFoundByIdException("User Not present for given id"));
-		
+
 		if(user.isDeleted()==false)
 			user.setDeleted(true);
-		
+
 		User user2 = userRepo.save(user);
-		
-		
+
+
 		UserResponse userResponse = mapToUserResponse(user2);
 		structure.setStatus(HttpStatus.OK.value());
 		structure.setMessage("deletion status updated successfully");
@@ -123,52 +145,54 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> assignUsersToAcademicProgram(int programId, int userId) {
-		
+
 		User user = userRepo.findById(userId).orElseThrow(()-> new UserNotFoundByIdException("User Not Present for given user id"));
-		
+
 		AcademicProgram program = programRepo.findById(programId).orElseThrow(()-> new ProgramNotFoundByIdException("Program Not present for given  program id"));
-		
+
 		if(user.getUserRole()!=USERROLE.ADMIN)
 		{
 			user.getAcademicPrograms().add(program);
 			userRepo.save(user);
 			program.getUsers().add(user);
 			programRepo.save(program);
-			
+
 			structure.setStatus(HttpStatus.OK.value());
 			structure.setMessage("User added to Academic Programs");
 			structure.setData(mapToUserResponse(user));
-			
+
 			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
 		}
 		else
-			
-		throw new AdminCannotBeAssignToAcademicProgramException("Admin cannot be assigned to any Academic Programs");
+
+			throw new AdminCannotBeAssignToAcademicProgramException("Admin cannot be assigned to any Academic Programs");
 	}
 
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> addSubjectToTeacher(int subjectId, int userId) {
-	
+
 		return userRepo.findById(userId).map(user ->{
 			if(user.getUserRole().equals(USERROLE.TEACHER))
 			{
 				subjectRepo.findById(subjectId).map(subject ->{
-					
+
 					user.setSubject(subject);
 					return userRepo.save(user);
-					
+
 				}).orElseThrow(()->new DataNotExistException("Subject Not Found for given subject id"));
-				
+
 				structure.setStatus(HttpStatus.OK.value());
 				structure.setMessage("added subject to teacher");
 				structure.setData(mapToUserResponse(user));
-				
+
 				return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
 			}
 			else
 				throw new UnAuthorisedUserException("Invalid User, we cant add");
 		}).orElseThrow(()->new UserNotFoundByIdException("User Not Present for given user id"));
 	}
+
+
 
 
 
