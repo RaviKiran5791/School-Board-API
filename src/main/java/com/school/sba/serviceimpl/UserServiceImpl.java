@@ -1,8 +1,11 @@
 package com.school.sba.serviceimpl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +15,13 @@ import com.school.sba.entity.User;
 import com.school.sba.enums.USERROLE;
 import com.school.sba.exception.AdminCannotBeAssignToAcademicProgramException;
 import com.school.sba.exception.DataNotExistException;
+import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.ProgramNotFoundByIdException;
+import com.school.sba.exception.SchoolDataNotFoundException;
 import com.school.sba.exception.UnAuthorisedUserException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repositary.AcademicProgramRepositary;
+import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.repositary.SubjectRepositary;
 import com.school.sba.repositary.UserRepositary;
 import com.school.sba.requestdto.UserRequest;
@@ -35,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private AcademicProgramRepositary programRepo;
+	
+	@Autowired
+	private SchoolRepositary schoolRepo;
 
 	@Autowired
 	private SubjectRepositary subjectRepo;
@@ -93,22 +102,33 @@ public class UserServiceImpl implements UserService {
 	}
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> addOtherUser(UserRequest userRequest) {
+		
+		String name = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		 return userRepo.findByUserName(name).map(adminuser->{
+			 
+		 return	 schoolRepo.findById(adminuser.getSchool().getSchoolId()).map(school->{
+				 
+				 if(userRequest.getUserRole().equals(USERROLE.TEACHER)|| userRequest.getUserRole().equals(USERROLE.STUDENT))
+					{
+						User user = mapToUser(userRequest);
+						user.setSchool(school);
+						userRepo.save(user);
+						UserResponse userResponse = mapToUserResponse(user);
 
-		User user = mapToUser(userRequest);
-		if(user.getUserRole().equals(USERROLE.TEACHER)|| user.getUserRole().equals(USERROLE.STUDENT))
-		{
-			userRepo.save(user);
-			UserResponse userResponse = mapToUserResponse(user);
+						structure.setStatus(HttpStatus.CREATED.value());
+						structure.setMessage("User registerd Successfully");
+						structure.setData(userResponse);
 
-			structure.setStatus(HttpStatus.CREATED.value());
-			structure.setMessage("User registerd Successfully");
-			structure.setData(userResponse);
-
-			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
-		}
-		else
-			throw new UnAuthorisedUserException("Unable to save user Invalid user role");
-
+						return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
+					}
+					else
+						throw new InvalidUserRoleException("Unable to save user, Invalid user role");
+				 
+				 
+			 }).orElseThrow(()->new SchoolDataNotFoundException("School Not Present for a Admin"));
+			 
+		 }).orElseThrow(()->new UnAuthorisedUserException("User Not Authorised"));	
 
 	}
 

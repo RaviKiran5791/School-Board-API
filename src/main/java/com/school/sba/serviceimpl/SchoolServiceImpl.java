@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.School;
@@ -67,7 +68,7 @@ public class SchoolServiceImpl implements SchoolService {
 				return new ResponseEntity<ResponseStructure<SchoolResponse>>(structure, HttpStatus.BAD_REQUEST);
 			}
 
-		}).orElseThrow(() -> new UserNotFoundByIdException("User Not Present for given Id"));
+		}).orElseThrow(() -> new UsernameNotFoundException("User Not Present"));
 
 	}
 
