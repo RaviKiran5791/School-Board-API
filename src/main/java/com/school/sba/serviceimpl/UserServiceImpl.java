@@ -1,5 +1,6 @@
 package com.school.sba.serviceimpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +110,7 @@ public class UserServiceImpl implements UserService {
 			 
 		 return	 schoolRepo.findById(adminuser.getSchool().getSchoolId()).map(school->{
 				 
-				 if(userRequest.getUserRole().equals(USERROLE.TEACHER)|| userRequest.getUserRole().equals(USERROLE.STUDENT))
+				 if(!userRequest.getUserRole().equals(USERROLE.ADMIN))
 					{
 						User user = mapToUser(userRequest);
 						user.setSchool(school);
@@ -170,7 +171,23 @@ public class UserServiceImpl implements UserService {
 
 		AcademicProgram program = programRepo.findById(programId).orElseThrow(()-> new ProgramNotFoundByIdException("Program Not present for given  program id"));
 
-		if(user.getUserRole()!=USERROLE.ADMIN)
+		List<Subject> subjects = program.getSubjects();
+		
+		if(user.getSubject()!=null && user.getUserRole().equals(USERROLE.TEACHER) &&  subjects.contains(user.getSubject()))
+		{
+			user.getAcademicPrograms().add(program);
+			userRepo.save(user);
+			program.getUsers().add(user);
+			programRepo.save(program);
+
+			structure.setStatus(HttpStatus.OK.value());
+			structure.setMessage("User added to Academic Programs");
+			structure.setData(mapToUserResponse(user));
+
+			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
+		}
+		
+		else if(user.getUserRole().equals(USERROLE.STUDENT))
 		{
 			user.getAcademicPrograms().add(program);
 			userRepo.save(user);
