@@ -1,5 +1,6 @@
 package com.school.sba.serviceimpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ import com.school.sba.entity.User;
 import com.school.sba.enums.USERROLE;
 import com.school.sba.exception.AdminCannotBeAssignToAcademicProgramException;
 import com.school.sba.exception.DataNotExistException;
+import com.school.sba.exception.IllegalRequestException;
 import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.exception.SchoolDataNotFoundException;
@@ -65,7 +67,7 @@ public class UserServiceImpl implements UserService {
 				.build();
 	}
 
-	private UserResponse mapToUserResponse(User user)
+	public UserResponse mapToUserResponse(User user)
 	{
 		return new UserResponse().builder()
 				.userId(user.getUserId())
@@ -209,7 +211,7 @@ public class UserServiceImpl implements UserService {
 	public ResponseEntity<ResponseStructure<UserResponse>> addSubjectToTeacher(int subjectId, int userId) {
 
 		return userRepo.findById(userId).map(user ->{
-			if(user.getUserRole().equals(USERROLE.TEACHER))
+			if(user.getUserRole().equals(USERROLE.TEACHER)&& user.getSubject()==null)
 			{
 				subjectRepo.findById(subjectId).map(subject ->{
 
@@ -228,6 +230,46 @@ public class UserServiceImpl implements UserService {
 				throw new UnAuthorisedUserException("Invalid User, we cant add");
 		}).orElseThrow(()->new UserNotFoundByIdException("User Not Present for given user id"));
 	}
+	
+	@Override
+	public ResponseEntity<ResponseStructure<List<UserResponse>>> findUserByRoleInProgram(int programId, USERROLE userRole) {
+
+		if(userRole.equals(USERROLE.ADMIN))
+			throw new IllegalRequestException("Illegle request User role is not valid");
+		ResponseStructure<List<UserResponse>> structure=new ResponseStructure<>();
+
+		return programRepo.findById(programId).map(program->{
+
+//			List<User> users = program.getUsers();
+//			List<User> userRolelist = users.stream().filter(user->user.getUserRole().equals(userRole)).toList();
+			
+			// or
+			
+			List<User> userList= userRepo.findByUserRoleAndAcademicPrograms_ProgramId(userRole, programId);
+			
+			if(!userList.isEmpty())
+			{
+				List<UserResponse> userResponsliste=new ArrayList<>();
+
+				for(User user : userList)
+				{
+					UserResponse userResponse = mapToUserResponse(user);
+					userResponsliste.add(userResponse);
+				}
+
+				structure.setStatus(HttpStatus.FOUND.value());
+				structure.setMessage("found user list");
+				structure.setData(userResponsliste);
+
+				return new ResponseEntity<ResponseStructure<List<UserResponse>>>(structure,HttpStatus.FOUND);
+			}
+			else
+				throw new DataNotExistException("User List not present for given Userrole");
+
+		}).orElseThrow(()->new ProgramNotFoundByIdException("program not present for given id"));
+
+	}
+	
 
 
 

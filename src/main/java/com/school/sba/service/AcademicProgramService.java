@@ -4,8 +4,11 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import com.school.sba.enums.USERROLE;
 import com.school.sba.requestdto.AcademicProgramRequest;
 import com.school.sba.responsedto.AcademicProgramResponse;
+import com.school.sba.responsedto.ClassHourResponse;
+import com.school.sba.responsedto.UserResponse;
 import com.school.sba.utility.ResponseStructure;
 
 public interface AcademicProgramService {
@@ -14,5 +17,7 @@ public interface AcademicProgramService {
 			AcademicProgramRequest programRequest);
 
 	ResponseEntity<ResponseStructure<List<AcademicProgramResponse>>> findAllAcademicPrograms(int schoolId);
+
+
 
 }

@@ -9,11 +9,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
+import com.school.sba.entity.User;
+import com.school.sba.enums.USERROLE;
+import com.school.sba.exception.DataNotExistException;
+import com.school.sba.exception.IllegalRequestException;
+import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.repositary.AcademicProgramRepositary;
 import com.school.sba.repositary.SchoolRepositary;
+import com.school.sba.repositary.UserRepositary;
 import com.school.sba.requestdto.AcademicProgramRequest;
 import com.school.sba.responsedto.AcademicProgramResponse;
+import com.school.sba.responsedto.UserResponse;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.utility.ResponseStructure;
 
@@ -23,6 +30,12 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	private AcademicProgramRepositary programRepo;
 	@Autowired
 	private SchoolRepositary schoolRepo;
+	@Autowired
+	private UserRepositary userRepo;
+
+	@Autowired
+	private UserServiceImpl userServiceImpl;
+
 	@Autowired
 	private ResponseStructure<AcademicProgramResponse> structure;
 
@@ -106,5 +119,9 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 
 		}).orElseThrow(()->new SchoolNotFoundByIdException("School Not Present for given school id"));
 	}
+
+	
+
+
 
 }

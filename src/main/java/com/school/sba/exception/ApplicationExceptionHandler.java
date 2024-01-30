@@ -75,59 +75,55 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	@ExceptionHandler(DataAlreadyExistException.class)
 	public ResponseEntity<Object> dataAlreadyExists(DataAlreadyExistException e)
 	{
-		return structure(HttpStatus.BAD_REQUEST, e.getMessage(), "UnAuthorised..!!!");
+		return structure(HttpStatus.BAD_REQUEST, e.getMessage(), "Data Already Exist..!!!");
 	}
 	@ExceptionHandler(ScheduleNotFoundByIdException.class)
 	public ResponseEntity<Object> scheduleNotFoundById(ScheduleNotFoundByIdException e)
 	{
-		return  structure(HttpStatus.NOT_FOUND, e.getMessage(), "School Data not present");
+		return  structure(HttpStatus.NOT_FOUND, e.getMessage(), "Schedule Data not present for given id");
 	}
 	
 	@ExceptionHandler(ScheduleNotFoundException.class)
 	public ResponseEntity<Object> scheduleNotFound(ScheduleNotFoundException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Schedule list not present");
 	}
 	@ExceptionHandler(DataNotExistException.class)
 	public ResponseEntity<Object> dataNotExists(DataNotExistException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Data  not present");
 	}
 	@ExceptionHandler(AdminCannotBeAssignToAcademicProgramException.class)
 	public ResponseEntity<Object> adminCannotBeAssigned(AdminCannotBeAssignToAcademicProgramException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Admin cannot be assigned to academic program");
 	}
 	@ExceptionHandler(ClassHourNotFoundByIdException.class)
 	public ResponseEntity<Object> classHourNotFoundById(ClassHourNotFoundByIdException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "classhour  not present for given id");
 	}
 	@ExceptionHandler(IllegalRequestException.class)
 	public ResponseEntity<Object> illegalRequest(IllegalRequestException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Illegal Request ");
 	}
 	@ExceptionHandler(InvalidUserRoleException.class)
 	public ResponseEntity<Object> invalidUserRole(InvalidUserRoleException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Invalid User Role");
 	}
 	@ExceptionHandler(ProgramNotFoundByIdException.class)
 	public ResponseEntity<Object> programNotFoundById(ProgramNotFoundByIdException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Program not present for given id");
 	}
 	@ExceptionHandler(SubjectNotFoundByIdException.class)
 	public ResponseEntity<Object> subjectNotFoundById(SubjectNotFoundByIdException e)
 	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
+		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "Subject not present for given id");
 	}
-	@ExceptionHandler(UnAuthorisedUserException.class)
-	public ResponseEntity<Object> unAuthorisedUser(UnAuthorisedUserException e)
-	{
-		return structure(HttpStatus.NOT_FOUND, e.getMessage(), "School list not present");
-	}
+	
 
 	
 	
