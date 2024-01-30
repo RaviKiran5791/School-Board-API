@@ -9,4 +9,6 @@ import com.school.sba.utility.ResponseStructure;
 public interface SchoolService {
 
 	ResponseEntity<ResponseStructure<SchoolResponse>> registerSchool(SchoolRequest schoolRequest);
+
+	ResponseEntity<ResponseStructure<String>> deleteSchoolById(int schoolId);
 }

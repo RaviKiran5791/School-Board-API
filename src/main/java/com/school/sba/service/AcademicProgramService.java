@@ -18,6 +18,8 @@ public interface AcademicProgramService {
 
 	ResponseEntity<ResponseStructure<List<AcademicProgramResponse>>> findAllAcademicPrograms(int schoolId);
 
+	ResponseEntity<ResponseStructure<String>> deleteAcademicProgramById(int programId);
+
 
 
 }

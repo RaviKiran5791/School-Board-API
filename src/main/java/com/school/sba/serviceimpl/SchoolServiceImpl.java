@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.school.sba.entity.School;
 import com.school.sba.enums.USERROLE;
 import com.school.sba.exception.DataAlreadyExistException;
+import com.school.sba.exception.IllegalRequestException;
+import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.repositary.UserRepositary;
@@ -70,6 +72,29 @@ public class SchoolServiceImpl implements SchoolService {
 
 		}).orElseThrow(() -> new UsernameNotFoundException("User Not Present"));
 
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<String>> deleteSchoolById(int schoolId) {
+		
+		ResponseStructure<String> structure=new ResponseStructure<>();
+		return schoolRepo.findById(schoolId).map(school->{
+
+			if(!school.isDeleted())
+			{
+				school.setDeleted(true);
+				schoolRepo.save(school);
+
+				structure.setStatus(HttpStatus.OK.value());
+				structure.setMessage("Deleted successfully");
+				structure.setData("School deleted successsfully for given id "+schoolId);
+
+				return new ResponseEntity<ResponseStructure<String>>(structure,HttpStatus.OK);
+			}
+			else
+				throw new IllegalRequestException("Failed To Delete School");
+
+		}).orElseThrow(()->new ProgramNotFoundByIdException("Academic Program Not Present for id "+schoolId));
 	}
 
 }

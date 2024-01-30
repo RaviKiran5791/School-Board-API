@@ -52,6 +52,12 @@ public class ClassHourServiceImpl implements ClassHourService{
 				.roomNo(classHour.getRoomNo())
 				.build();
 	}
+	
+	private ClassHour deleteSchedule(ClassHour classHour)
+	{
+		classHourRepo.delete(classHour);
+		return classHour;
+	}
 
 	@Autowired
 	private ResponseStructure<ClassHourResponse> structure;

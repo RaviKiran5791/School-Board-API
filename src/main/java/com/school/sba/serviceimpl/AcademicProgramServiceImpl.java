@@ -120,6 +120,28 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		}).orElseThrow(()->new SchoolNotFoundByIdException("School Not Present for given school id"));
 	}
 
+	@Override
+	public ResponseEntity<ResponseStructure<String>> deleteAcademicProgramById(int programId) {
+		ResponseStructure<String> structure=new ResponseStructure<>();
+		return programRepo.findById(programId).map(program->{
+			
+			if(!program.isDeleted())
+			{
+				program.setDeleted(true);
+				programRepo.save(program);
+				
+				structure.setStatus(HttpStatus.OK.value());
+				structure.setMessage("Deleted successfully");
+				structure.setData("Program deleted successsfully for given id "+programId);
+				
+				return new ResponseEntity<ResponseStructure<String>>(structure,HttpStatus.OK);
+			}
+			else
+				throw new IllegalRequestException("Failed To Deletet Academic Program");
+			
+		}).orElseThrow(()->new ProgramNotFoundByIdException("Academic Program Not Present for id "+programId));
+	}
+
 	
 
 

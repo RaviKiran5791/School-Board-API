@@ -50,6 +50,11 @@ public class ScheduleServiceImpl implements ScheduleService{
 				.lunchBreakLengthInMinutes((int) schedule.getLunchBreakLengthInMinutes().toMinutes()).build();
 	}
 
+	private Schedule deleteSchedule(Schedule schedule)
+	{
+		scheduleRepo.delete(schedule);
+		return schedule;
+	}
 	@Override
 	public ResponseEntity<ResponseStructure<ScheduleResponse>> createSchedule(int schoolId,ScheduleRequest scheduleRequest) 
 	{
