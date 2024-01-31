@@ -19,6 +19,6 @@ public interface UserService {
 	public ResponseEntity<ResponseStructure<UserResponse>> addSubjectToTeacher(int subjectId, int userId);
 	public ResponseEntity<ResponseStructure<List<UserResponse>>> findUserByRoleInProgram(int programId, USERROLE userRole);
 	
-	
+	public void deleteUserPermanently();
 
 }

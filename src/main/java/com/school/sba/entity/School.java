@@ -29,6 +29,7 @@ public class School {
 	private String emailId;
 	private String address;
 	private boolean isDeleted;
+	
 	@OneToMany(mappedBy = "school")
 	private List<User> users;
 	@OneToOne

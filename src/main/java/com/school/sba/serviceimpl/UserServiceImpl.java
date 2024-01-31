@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
+import com.school.sba.entity.School;
 import com.school.sba.entity.Subject;
 import com.school.sba.entity.User;
 import com.school.sba.enums.USERROLE;
@@ -32,6 +33,7 @@ import com.school.sba.responsedto.UserResponse;
 import com.school.sba.service.UserService;
 import com.school.sba.utility.ResponseStructure;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 @Service
 public class UserServiceImpl implements UserService {
@@ -44,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private AcademicProgramRepositary programRepo;
-	
+
 	@Autowired
 	private SchoolRepositary schoolRepo;
 
@@ -105,33 +107,33 @@ public class UserServiceImpl implements UserService {
 	}
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> addOtherUser(UserRequest userRequest) {
-		
+
 		String name = SecurityContextHolder.getContext().getAuthentication().getName();
-		
-		 return userRepo.findByUserName(name).map(adminuser->{
-			 
-		 return	 schoolRepo.findById(adminuser.getSchool().getSchoolId()).map(school->{
-				 
-				 if(!userRequest.getUserRole().equals(USERROLE.ADMIN))
-					{
-						User user = mapToUser(userRequest);
-						user.setSchool(school);
-						userRepo.save(user);
-						UserResponse userResponse = mapToUserResponse(user);
 
-						structure.setStatus(HttpStatus.CREATED.value());
-						structure.setMessage("User registerd Successfully");
-						structure.setData(userResponse);
+		return userRepo.findByUserName(name).map(adminuser->{
 
-						return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
-					}
-					else
-						throw new InvalidUserRoleException("Unable to save user, Invalid user role");
-				 
-				 
-			 }).orElseThrow(()->new SchoolDataNotFoundException("School Not Present for a Admin"));
-			 
-		 }).orElseThrow(()->new UnAuthorisedUserException("User Not Authorised"));	
+			return	 schoolRepo.findById(adminuser.getSchool().getSchoolId()).map(school->{
+
+				if(!userRequest.getUserRole().equals(USERROLE.ADMIN))
+				{
+					User user = mapToUser(userRequest);
+					user.setSchool(school);
+					userRepo.save(user);
+					UserResponse userResponse = mapToUserResponse(user);
+
+					structure.setStatus(HttpStatus.CREATED.value());
+					structure.setMessage("User registerd Successfully");
+					structure.setData(userResponse);
+
+					return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.CREATED);
+				}
+				else
+					throw new InvalidUserRoleException("Unable to save user, Invalid user role");
+
+
+			}).orElseThrow(()->new SchoolDataNotFoundException("School Not Present for a Admin"));
+
+		}).orElseThrow(()->new UnAuthorisedUserException("User Not Authorised"));	
 
 	}
 
@@ -153,17 +155,22 @@ public class UserServiceImpl implements UserService {
 	public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(int userId) {
 		User user = userRepo.findById(userId).orElseThrow(()->new UserNotFoundByIdException("User Not present for given id"));
 
-		if(user.isDeleted()==false)
-			user.setDeleted(true);
+		if(!user.getUserRole().equals(USERROLE.ADMIN))
+		{
+			if(user.isDeleted()==false)
+				user.setDeleted(true);
 
-		User user2 = userRepo.save(user);
+			User user2 = userRepo.save(user);
 
 
-		UserResponse userResponse = mapToUserResponse(user2);
-		structure.setStatus(HttpStatus.OK.value());
-		structure.setMessage("deletion status updated successfully");
-		structure.setData(userResponse);
-		return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
+			UserResponse userResponse = mapToUserResponse(user2);
+			structure.setStatus(HttpStatus.OK.value());
+			structure.setMessage("deletion status updated successfully");
+			structure.setData(userResponse);
+			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
+		}
+		else
+			throw new IllegalRequestException("We Cann't delete the user");
 	}
 
 	@Override
@@ -174,7 +181,7 @@ public class UserServiceImpl implements UserService {
 		AcademicProgram program = programRepo.findById(programId).orElseThrow(()-> new ProgramNotFoundByIdException("Program Not present for given  program id"));
 
 		List<Subject> subjects = program.getSubjects();
-		
+
 		if(user.getSubject()!=null && user.getUserRole().equals(USERROLE.TEACHER) &&  subjects.contains(user.getSubject()))
 		{
 			user.getAcademicPrograms().add(program);
@@ -188,7 +195,7 @@ public class UserServiceImpl implements UserService {
 
 			return new ResponseEntity<ResponseStructure<UserResponse>>(structure,HttpStatus.OK);
 		}
-		
+
 		else if(user.getUserRole().equals(USERROLE.STUDENT))
 		{
 			user.getAcademicPrograms().add(program);
@@ -230,7 +237,7 @@ public class UserServiceImpl implements UserService {
 				throw new UnAuthorisedUserException("Invalid User, we cant add");
 		}).orElseThrow(()->new UserNotFoundByIdException("User Not Present for given user id"));
 	}
-	
+
 	@Override
 	public ResponseEntity<ResponseStructure<List<UserResponse>>> findUserByRoleInProgram(int programId, USERROLE userRole) {
 
@@ -240,13 +247,13 @@ public class UserServiceImpl implements UserService {
 
 		return programRepo.findById(programId).map(program->{
 
-//			List<User> users = program.getUsers();
-//			List<User> userRolelist = users.stream().filter(user->user.getUserRole().equals(userRole)).toList();
-			
+			//			List<User> users = program.getUsers();
+			//			List<User> userRolelist = users.stream().filter(user->user.getUserRole().equals(userRole)).toList();
+
 			// or
-			
+
 			List<User> userList= userRepo.findByUserRoleAndAcademicPrograms_ProgramId(userRole, programId);
-			
+
 			if(!userList.isEmpty())
 			{
 				List<UserResponse> userResponsliste=new ArrayList<>();
@@ -269,10 +276,29 @@ public class UserServiceImpl implements UserService {
 		}).orElseThrow(()->new ProgramNotFoundByIdException("program not present for given id"));
 
 	}
-	
+	@Transactional
+	public void deleteUserPermanently()
+	{
 
+		List<User> list = userRepo.findByIsDeletedTrue();
+		if(!list.isEmpty())
+		{
+			for(User user : list)
+			{
 
+				List<AcademicProgram> academicPrograms = user.getAcademicPrograms();
 
+				for(AcademicProgram academicProgram:academicPrograms)
+				{
+					academicProgram.getUsers().remove(user);
 
+					programRepo.save(academicProgram);
+				}
 
+				userRepo.delete(user);
+			}
+
+		}
+
+	}
 }

@@ -4,11 +4,13 @@ import java.util.List;
 
 import com.school.sba.enums.USERROLE;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -47,7 +49,7 @@ public class User {
 	@ManyToOne
 	private School school;
 	
-	@ManyToMany(mappedBy = "users")
+	@ManyToMany(mappedBy = "users",fetch = FetchType.EAGER)
 	private List<AcademicProgram> academicPrograms;
 	
 	@ManyToOne

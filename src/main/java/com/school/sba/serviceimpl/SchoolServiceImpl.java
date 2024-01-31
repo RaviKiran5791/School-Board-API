@@ -1,5 +1,7 @@
 package com.school.sba.serviceimpl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,12 +9,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.School;
+import com.school.sba.entity.User;
 import com.school.sba.enums.USERROLE;
 import com.school.sba.exception.DataAlreadyExistException;
 import com.school.sba.exception.IllegalRequestException;
 import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.exception.UserNotFoundByIdException;
+import com.school.sba.repositary.AcademicProgramRepositary;
+import com.school.sba.repositary.ClassHourRepositary;
 import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.repositary.UserRepositary;
 import com.school.sba.requestdto.SchoolRequest;
@@ -24,9 +30,14 @@ import com.school.sba.utility.ResponseStructure;
 public class SchoolServiceImpl implements SchoolService {
 
 	@Autowired
-	SchoolRepositary schoolRepo;
+	private SchoolRepositary schoolRepo;
 	@Autowired
-	UserRepositary userRepo;
+	private UserRepositary userRepo;
+	@Autowired
+	private ClassHourRepositary classHourRepo;
+	@Autowired
+	private AcademicProgramRepositary programRepo;
+	
 
 	@Autowired
 	ResponseStructure<SchoolResponse> structure;
@@ -95,6 +106,26 @@ public class SchoolServiceImpl implements SchoolService {
 				throw new IllegalRequestException("Failed To Delete School");
 
 		}).orElseThrow(()->new ProgramNotFoundByIdException("Academic Program Not Present for id "+schoolId));
+	}
+
+	@Override
+	public void deleteSchoolPermanently() {
+	
+		School school = schoolRepo.findByIsDeleted(true);
+		
+		List<User> users = userRepo.findByUserRoleNot(USERROLE.ADMIN);
+		userRepo.deleteAll(users);
+		
+		List<AcademicProgram> programs = school.getPrograms();
+		for(AcademicProgram program : programs)
+		{
+			classHourRepo.deleteAll(program.getClassHours());
+		}
+		
+		programRepo.deleteAll(programs);
+		
+		schoolRepo.delete(school);
+		
 	}
 
 }

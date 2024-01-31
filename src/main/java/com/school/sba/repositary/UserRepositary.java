@@ -21,5 +21,13 @@ public interface UserRepositary extends JpaRepository<User, Integer>{
 
 
 	List<User> findByUserRoleAndAcademicPrograms_ProgramId(USERROLE userRole, int programId);
+	
+	List<User> findByIsDeletedTrue();
+	
+	//or
+//	List<User> findByIsDeleted(boolean isDeleted);
+	
+	List<User> findByUserRoleNot(USERROLE userRole);
+	
 
 }

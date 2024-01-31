@@ -16,6 +16,7 @@ import com.school.sba.exception.IllegalRequestException;
 import com.school.sba.exception.ProgramNotFoundByIdException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.repositary.AcademicProgramRepositary;
+import com.school.sba.repositary.ClassHourRepositary;
 import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.repositary.UserRepositary;
 import com.school.sba.requestdto.AcademicProgramRequest;
@@ -35,6 +36,9 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 
 	@Autowired
 	private UserServiceImpl userServiceImpl;
+	
+	@Autowired
+	private ClassHourRepositary classHourRepositary;
 
 	@Autowired
 	private ResponseStructure<AcademicProgramResponse> structure;
@@ -124,26 +128,39 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	public ResponseEntity<ResponseStructure<String>> deleteAcademicProgramById(int programId) {
 		ResponseStructure<String> structure=new ResponseStructure<>();
 		return programRepo.findById(programId).map(program->{
-			
+
 			if(!program.isDeleted())
 			{
 				program.setDeleted(true);
 				programRepo.save(program);
-				
+
 				structure.setStatus(HttpStatus.OK.value());
 				structure.setMessage("Deleted successfully");
 				structure.setData("Program deleted successsfully for given id "+programId);
-				
+
 				return new ResponseEntity<ResponseStructure<String>>(structure,HttpStatus.OK);
 			}
 			else
 				throw new IllegalRequestException("Failed To Deletet Academic Program");
-			
+
 		}).orElseThrow(()->new ProgramNotFoundByIdException("Academic Program Not Present for id "+programId));
 	}
 
-	
 
+	public void deleteAcademicProgramPermanently() {
+		
+		List<AcademicProgram> list = programRepo.findByIsDeleted(true);
+		
+		if(!list.isEmpty())
+		{
+			for(AcademicProgram program:list)
+			{
+				classHourRepositary.deleteAll(program.getClassHours());
+				programRepo.delete(program);
+			}
+		}
+
+	}
 
 
 }

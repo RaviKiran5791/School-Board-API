@@ -20,6 +20,7 @@ public interface AcademicProgramService {
 
 	ResponseEntity<ResponseStructure<String>> deleteAcademicProgramById(int programId);
 
+	public void deleteAcademicProgramPermanently();
 
 
 }
