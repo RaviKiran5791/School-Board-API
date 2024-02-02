@@ -25,6 +25,7 @@ import com.school.sba.exception.SchoolDataNotFoundException;
 import com.school.sba.exception.UnAuthorisedUserException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repositary.AcademicProgramRepositary;
+import com.school.sba.repositary.ClassHourRepositary;
 import com.school.sba.repositary.SchoolRepositary;
 import com.school.sba.repositary.SubjectRepositary;
 import com.school.sba.repositary.UserRepositary;
@@ -52,6 +53,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private SubjectRepositary subjectRepo;
+	
+	@Autowired
+	private ClassHourRepositary classHourRepo;
 
 	@Autowired
 	private ResponseStructure<UserResponse> structure;
@@ -279,26 +283,30 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public void deleteUserPermanently()
 	{
-
-		List<User> list = userRepo.findByIsDeletedTrue();
-		if(!list.isEmpty())
-		{
-			for(User user : list)
-			{
-
-				List<AcademicProgram> academicPrograms = user.getAcademicPrograms();
-
-				for(AcademicProgram academicProgram:academicPrograms)
-				{
-					academicProgram.getUsers().remove(user);
-
-					programRepo.save(academicProgram);
-				}
-
-				userRepo.delete(user);
-			}
-
-		}
-
+		List<User> listOfUsersToBeDeleted = userRepo.findByIsDeletedTrue();
+		
+	   if(!listOfUsersToBeDeleted.isEmpty())
+	   {
+		   listOfUsersToBeDeleted.forEach(user->{
+			   user.getAcademicPrograms().forEach(program->{
+				   program.getClassHours().forEach(classHour->{
+					   if(classHour.getUser()==user)
+					   {
+						   classHour.setUser(null);
+						   classHourRepo.save(classHour);
+					   }
+					   
+				   });
+				   program.getUsers().remove(user);
+				   
+				   programRepo.save(program);
+			   });
+			   userRepo.delete(user);
+		   });
+		   System.out.println("User Deleted");
+	   }
+	   else
+		   System.out.println("Data Not Exist to Delete");
+		
 	}
 }

@@ -70,6 +70,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				.beginsAt(academicProgram.getBeginsAt())
 				.endsAt(academicProgram.getEndsAt())
 				.subjects(subjectNames)
+				.autoRepeateScheduled(academicProgram.isAutoRepeateScheduled())
 				.build();
 
 	}
@@ -158,8 +159,31 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				classHourRepositary.deleteAll(program.getClassHours());
 				programRepo.delete(program);
 			}
+			System.out.println("Programs deleted Successfully");
 		}
+		else
+			System.out.println("No programs present to delete");
 
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> autoRepeatScheduleON(int programId,boolean autoRepeateScheduled) {
+		
+		return programRepo.findById(programId).map(program->{
+			
+			if(!program.isDeleted()) {
+				program.setAutoRepeateScheduled(autoRepeateScheduled);
+				program.setProgramId(programId);
+				programRepo.save(program);
+				
+				structure.setStatus(HttpStatus.OK.value());
+				structure.setMessage("Auto Repeat Schedule: ON");
+				structure.setData(mapToAcademicProgramResponse(program));
+			
+				return new ResponseEntity<ResponseStructure<AcademicProgramResponse>>(structure,HttpStatus.OK);  
+			}
+			throw new IllegalRequestException("Program Already DELETED");			
+		}).orElseThrow(()->new ProgramNotFoundByIdException("Program not present for Given Id"));
 	}
 
 

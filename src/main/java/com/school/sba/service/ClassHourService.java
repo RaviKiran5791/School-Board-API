@@ -15,5 +15,7 @@ public interface ClassHourService {
 
 	ResponseEntity<ResponseStructure<List<ClassHourResponse>>> updateClassHour(
 			List<ClassHourRequest> classHourUpdateRequests);
+	
+	public void generateWeeklyClassHours();
 
 }

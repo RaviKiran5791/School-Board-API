@@ -29,5 +29,7 @@ public interface UserRepositary extends JpaRepository<User, Integer>{
 	
 	List<User> findByUserRoleNot(USERROLE userRole);
 	
+	List<User> findByUserRole(USERROLE userRole);
+	
 
 }

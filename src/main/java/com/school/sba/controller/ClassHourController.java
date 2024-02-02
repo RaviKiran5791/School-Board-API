@@ -40,4 +40,5 @@ public class ClassHourController {
 		return classHourService.updateClassHour(classHourRequests);
 	}
 
+	
 }

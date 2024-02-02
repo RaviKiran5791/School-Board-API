@@ -9,5 +9,7 @@ import com.school.sba.entity.AcademicProgram;
 public interface AcademicProgramRepositary extends JpaRepository<AcademicProgram, Integer>{
 	
 	List<AcademicProgram> findByIsDeleted(boolean isDeleted);
+	
+	 List<AcademicProgram> findByAutoRepeateScheduledTrue();
 
 }

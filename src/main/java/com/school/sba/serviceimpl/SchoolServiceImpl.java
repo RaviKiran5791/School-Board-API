@@ -37,7 +37,7 @@ public class SchoolServiceImpl implements SchoolService {
 	private ClassHourRepositary classHourRepo;
 	@Autowired
 	private AcademicProgramRepositary programRepo;
-	
+
 
 	@Autowired
 	ResponseStructure<SchoolResponse> structure;
@@ -87,7 +87,7 @@ public class SchoolServiceImpl implements SchoolService {
 
 	@Override
 	public ResponseEntity<ResponseStructure<String>> deleteSchoolById(int schoolId) {
-		
+
 		ResponseStructure<String> structure=new ResponseStructure<>();
 		return schoolRepo.findById(schoolId).map(school->{
 
@@ -110,22 +110,34 @@ public class SchoolServiceImpl implements SchoolService {
 
 	@Override
 	public void deleteSchoolPermanently() {
-	
-		School school = schoolRepo.findByIsDeleted(true);
-		
-		List<User> users = userRepo.findByUserRoleNot(USERROLE.ADMIN);
-		userRepo.deleteAll(users);
-		
-		List<AcademicProgram> programs = school.getPrograms();
-		for(AcademicProgram program : programs)
+
+		List<School> schoolsToBeDeleted = schoolRepo.findByIsDeleted(true);
+
+		if(!schoolsToBeDeleted.isEmpty())
 		{
-			classHourRepo.deleteAll(program.getClassHours());
+			schoolsToBeDeleted.forEach(school->{
+
+				programRepo.deleteAll(school.getPrograms());
+				List<User> userList = userRepo.findByUserRoleNot(USERROLE.ADMIN);
+				userRepo.deleteAll(userList);
+
+				userRepo.findByUserRole(USERROLE.ADMIN).forEach(user->{
+
+					if(user.getSchool().getSchoolId()==school.getSchoolId())
+					{
+						user.setSchool(null);
+						userRepo.save(user);
+					}
+				});
+
+			});
+			schoolRepo.deleteAll();
+			System.out.println("School Deleted");
 		}
-		
-		programRepo.deleteAll(programs);
-		
-		schoolRepo.delete(school);
-		
+		else
+			System.out.println("Nothing to be deleted");
+
+
 	}
 
 }

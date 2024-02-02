@@ -40,6 +40,7 @@ public class AcademicProgram {
 	private LocalDate beginsAt;
 	private LocalDate endsAt;
 	private boolean isDeleted;
+	private boolean autoRepeateScheduled;
 	
 	@ManyToOne
 	private School school;
